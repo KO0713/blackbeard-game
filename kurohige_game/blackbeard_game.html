@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>黒ひげロスカット占い</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: url('gold_chart_background.jpg') no-repeat center/cover;
+      color: white;
+    }
+    h1 {
+      background: rgba(0, 0, 0, 0.7);
+      color: gold;
+      margin: 0;
+      padding: 15px;
+    }
+    .container {
+      margin: 20px auto;
+      text-align: center;
+    }
+    .image {
+      width: 360px; /* 1.2倍に拡大 */
+      margin: 20px auto;
+      position: relative;
+    }
+    .panels {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+    .panel {
+      width: 80px;
+      height: 80px;
+      margin: 10px;
+      background: #ddd;
+      border-radius: 10px;
+      font-size: 24px;
+      font-weight: bold;
+      color: #333;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .panel:hover {
+      background: #ccc;
+    }
+    .panel.selected {
+      background: gold;
+      color: black;
+      cursor: not-allowed;
+    }
+    .result {
+      font-size: 24px;
+      font-weight: bold;
+      margin: 20px;
+      padding: 10px;
+      background: rgba(0, 0, 0, 0.7);
+      border-radius: 10px;
+      display: inline-block;
+    }
+    .link {
+      font-size: 20px;
+      color: white;
+      text-decoration: none;
+      margin: 20px;
+      padding: 15px;
+      background: gold;
+      border-radius: 10px;
+      display: inline-block;
+      font-weight: bold;
+    }
+    .link:hover {
+      background: orange;
+    }
+    .reset-btn, .continue-btn {
+      display: inline-block;
+      padding: 10px 20px;
+      margin-top: 20px;
+      background: gold;
+      color: black;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    .reset-btn:hover, .continue-btn:hover {
+      background: orange;
+    }
+    .ranking {
+      margin: 20px auto;
+      max-width: 600px;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 15px;
+      border-radius: 10px;
+      text-align: left;
+    }
+    .ranking h2 {
+      color: gold;
+      margin-bottom: 10px;
+    }
+    .ranking ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .ranking li {
+      margin: 5px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>黒ひげロスカット占い</h1>
+  <div class="container">
+    <img id="blackbeardImg" src="blackbeard_in_barrel.png" alt="黒ひげ" class="image">
+    <div class="panels" id="panels"></div>
+    <div id="result" class="result"></div>
+    <a id="link" class="link" href="#" target="_blank" style="display: none;"></a>
+    <button id="resetBtn" class="reset-btn" style="display: none;">リセット</button>
+    <button id="continueBtn" class="continue-btn" style="display: none;">さらに続ける</button>
+    <div class="ranking" id="ranking" style="display: none;">
+      <h2>ランキング</h2>
+      <ul id="rankingList"></ul>
+    </div>
+  </div>
+
+  <script>
+    const MAX_ATTEMPTS = 3;
+    const TOTAL_PANELS = 8;
+    const OPC_LINK_WIN = "https://onl.bz/88yuzHS";
+    const OPC_LINK_LOSS = "https://onl.bz/88yuzHS";
+    let attempts = 0;
+    let isGameOver = false;
+    let unluckyNumber;
+    let totalReturns = 0;
+    let playerRanking = {};
+
+    const panelsContainer = document.getElementById('panels');
+    const blackbeardImg = document.getElementById('blackbeardImg');
+    const resultDiv = document.getElementById('result');
+    const link = document.getElementById('link');
+    const resetBtn = document.getElementById('resetBtn');
+    const continueBtn = document.getElementById('continueBtn');
+    const rankingDiv = document.getElementById('ranking');
+    const rankingList = document.getElementById('rankingList');
+
+    function generatePanels() {
+      for (let i = 0; i < TOTAL_PANELS; i++) {
+        const panel = document.createElement('div');
+        panel.className = 'panel';
+        panel.textContent = i + 1;
+        panel.dataset.index = i;
+        panel.addEventListener('click', handlePanelClick);
+        panelsContainer.appendChild(panel);
+      }
+    }
+
+    function handlePanelClick(event) {
+      if (isGameOver) return;
+      const panel = event.currentTarget;
+      const panelIndex = parseInt(panel.dataset.index);
+      if (panel.classList.contains('selected')) return;
+
+      panel.classList.add('selected');
+      attempts++;
+      if (panelIndex === unluckyNumber) {
+        handleUnluckyResult();
+      } else {
+        resultDiv.textContent = "利確！";
+        if (attempts >= MAX_ATTEMPTS) {
+          totalReturns++;
+          handleVictory();
+        }
+      }
+    }
+
+    function handleUnluckyResult() {
+      resultDiv.textContent = "ロスカット！ざんねん！";
+      isGameOver = true;
+      link.textContent = "リアルでのロスカット回避の秘訣はこちら💁‍♀️";
+      link.href = OPC_LINK_LOSS;
+      link.style.display = "inline-block";
+      resetBtn.style.display = "inline-block";
+      continueBtn.style.display = "none";
+      blackbeardImg.src = "blackbeard_out.png";
+      updateRanking();
+      displayRanking();
+    }
+
+    function handleVictory() {
+      resultDiv.textContent = `おめでとうございます！${totalReturns}回目の原資回収です！`;
+      link.textContent = "次はリアルの成功を狙うならこちら💁‍♀️";
+      link.href = OPC_LINK_WIN;
+      link.style.display = "inline-block";
+      resetBtn.style.display = "inline-block";
+      continueBtn.style.display = "inline-block";
+      blackbeardImg.src = "blackbeard_in_barrel.png";
+      updateRanking();
+      displayRanking();
+    }
+
+    function resetGame() {
+      panelsContainer.innerHTML = '';
+      blackbeardImg.src = "blackbeard_in_barrel.png";
+      resultDiv.textContent = '';
+      link.style.display = 'none';
+      resetBtn.style.display = 'none';
+      continueBtn.style.display = 'none';
+      attempts = 0;
+      isGameOver = false;
+      unluckyNumber = Math.floor(Math.random() * TOTAL_PANELS);
+      generatePanels();
+    }
+
+    function continueGame() {
+      panelsContainer.innerHTML = '';
+      resultDiv.textContent = '';
+      link.style.display = 'none';
+      resetBtn.style.display = 'none';
+      continueBtn.style.display = 'none';
+      attempts = 0;
+      isGameOver = false;
+      unluckyNumber = Math.floor(Math.random() * TOTAL_PANELS);
+      generatePanels();
+    }
+
+    function updateRanking() {
+      playerRanking[totalReturns] = (playerRanking[totalReturns] || 0) + 1;
+    }
+
+    function displayRanking() {
+      rankingList.innerHTML = '';
+      Object.keys(playerRanking).sort((a, b) => b - a).forEach(rank => {
+        const li = document.createElement('li');
+        li.textContent = `原資回収${rank}回 ${playerRanking[rank]}人`;
+        rankingList.appendChild(li);
+      });
+      rankingDiv.style.display = 'block';
+    }
+
+    unluckyNumber = Math.floor(Math.random() * TOTAL_PANELS);
+    generatePanels();
+    resetBtn.addEventListener('click', resetGame);
+    continueBtn.addEventListener('click', continueGame);
+  </script>
+</body>
+</html>
